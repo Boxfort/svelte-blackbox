@@ -10,6 +10,14 @@
 
     let gridSquares = {};
     let laserButtons = {};
+
+    $: OnDataChanged(width, height, balls);
+
+    function OnDataChanged(...args) {
+        gridSquares.forEach((item) => {
+            // blah
+        });
+    }
 </script>
 
 <div class="grid-container" style="--width: {width}; --height: {height}">
@@ -28,9 +36,6 @@
             <GridSquare
                 position={[i, j]}
                 bind:domElement={gridSquares[[i, j]]}
-                on:clicked={(event) => {
-                    console.log(event);
-                }}
             />
         {/each}
 
