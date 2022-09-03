@@ -45,8 +45,6 @@
                 gridSquares[[randX, randY]].hasBall = true;
                 gridSquares[[randX, randY]].isMarkedAsBall = true;
                 placedBalls++;
-
-                console.log("BALL AT: " + [randX, randY]);
             }
         }
     }
@@ -54,17 +52,14 @@
     let buttonCounter = 1;
 
     function onButtonClicked(event) {
-        if (laserButtons[event.detail.pos] == "") {
-            // New button pressed
-            laserButtons[event.detail.pos] = buttonCounter.toString();
-            buttonCounter++;
-        }
-
         shootLaser(event.detail.pos);
     }
 
-    function shootLaser(startingPosition) {
+    function shootLaser(buttonPosition) {
         let direction = [0, 0];
+        let startingPosition = [0, 0];
+        startingPosition[0] = buttonPosition[0];
+        startingPosition[1] = buttonPosition[1];
 
         // Which way should we shoot the laser?
         if (startingPosition[1] == 0) {
@@ -87,6 +82,33 @@
 
         let result = resolveLaser(startingPosition, direction, true);
         console.log(result);
+
+        if (result.result == "Hit") {
+            laserButtons[buttonPosition] = "H";
+        } else if (result.result == "Reflected") {
+            laserButtons[buttonPosition] = "R";
+        } else if (result.result == "Exited") {
+            let targetButtonPos = [0, 0];
+            if (arePositionsEqual(result.dir, [0, 1])) {
+                // The laser exited the bottom
+                targetButtonPos = addPositions(result.pos, [0, 2]);
+            } else if (arePositionsEqual(result.dir, [0, -1])) {
+                // The laser exited the top
+                targetButtonPos = result.pos;
+            } else if (arePositionsEqual(result.dir, [1, 0])) {
+                // The laser exited the right
+                targetButtonPos = addPositions(result.pos, [1, 1]);
+            } else if (arePositionsEqual(result.dir, [-1, 0])) {
+                // The laser exited the left
+                targetButtonPos = addPositions(result.pos, [0, 1]);
+            }
+
+            if (laserButtons[buttonPosition] == "") {
+                laserButtons[buttonPosition] = buttonCounter.toString();
+                laserButtons[targetButtonPos] = buttonCounter.toString();
+                buttonCounter++;
+            }
+        }
     }
 
     function resolveLaser(position, direction, justFired = false) {
