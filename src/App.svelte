@@ -4,7 +4,7 @@
     let data = {
         width: 5,
         height: 5,
-        balls: 5,
+        balls: 1,
     };
 </script>
 

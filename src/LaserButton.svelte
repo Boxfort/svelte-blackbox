@@ -2,7 +2,6 @@
     import { createEventDispatcher } from "svelte";
 
     export let position;
-    export let domElement;
     export let text = "";
 
     const dispatch = createEventDispatcher();
@@ -12,7 +11,7 @@
     }
 </script>
 
-<div class="laser-button" bind:this={domElement} on:click={handleClick}>
+<div class="laser-button" on:click={handleClick}>
     {text}
 </div>
 

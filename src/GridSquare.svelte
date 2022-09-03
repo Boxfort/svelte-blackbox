@@ -1,36 +1,37 @@
 <script>
     import { createEventDispatcher } from "svelte";
 
-    export let domElement;
     export let position;
 
-    let hasBall = false;
-    let isMarkedAsBall = false;
-    let isMarkedAsClear = false;
+    export let data = {
+        hasBall: false,
+        isMarkedAsBall: false,
+        isMarkedAsClear: false,
+    };
 
     const dispatch = createEventDispatcher();
 
     function handleClick() {
-        if (isMarkedAsClear) {
-            isMarkedAsBall = true;
-            isMarkedAsClear = false;
-        } else if (isMarkedAsBall) {
-            isMarkedAsBall = false;
-            isMarkedAsClear = false;
+        if (data.isMarkedAsClear) {
+            data.isMarkedAsBall = true;
+            data.isMarkedAsClear = false;
+        } else if (data.isMarkedAsBall) {
+            data.isMarkedAsBall = false;
+            data.isMarkedAsClear = false;
         } else {
-            isMarkedAsClear = true;
+            data.isMarkedAsClear = true;
         }
+        console.log("PRESSED: " + position.toString());
         dispatch("clicked", { pos: position });
     }
 </script>
 
 <div
     class="grid-square"
-    class:marked-clear={isMarkedAsClear}
-    bind:this={domElement}
+    class:marked-clear={data.isMarkedAsClear}
     on:click={handleClick}
 >
-    {#if isMarkedAsBall}
+    {#if data.isMarkedAsBall}
         <div class="grid-ball" />
     {/if}
 </div>
