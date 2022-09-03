@@ -43,7 +43,6 @@
             if (!gridSquares[[randX, randY]].hasBall) {
                 // Place a ball
                 gridSquares[[randX, randY]].hasBall = true;
-                gridSquares[[randX, randY]].isMarkedAsBall = true;
                 placedBalls++;
             }
         }
@@ -81,7 +80,6 @@
         }
 
         let result = resolveLaser(startingPosition, direction, true);
-        console.log(result);
 
         if (result.result == "Hit") {
             laserButtons[buttonPosition] = "H";
@@ -144,8 +142,6 @@
             addPositions(position, direction),
             relativeRight
         );
-
-        gridSquares[position].isMarkedAsClear = true;
 
         // Special case for just entering the board.
         if (justFired) {
@@ -220,7 +216,7 @@
             return {
                 result: "Exited",
                 pos: position,
-                dir: direction,
+                dir: nextDirection,
             };
         }
     }
@@ -289,6 +285,8 @@
     {/each}
     <div class="grid-item-empty" />
 </div>
+
+<button>Check</button>
 
 <style>
     .grid-container {
