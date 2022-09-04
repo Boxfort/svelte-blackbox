@@ -12,6 +12,7 @@
     let laserButtons = {};
 
     let checking = false;
+    let dirtyBoard = false;
 
     $: OnDataChanged(width, height, balls);
 
@@ -21,6 +22,7 @@
             gridSquares[key].isMarkedAsBall = false;
             gridSquares[key].isMarkedAsClear = false;
             gridSquares[key].hasBall = false;
+            removeCheckMarks();
         }
         // Reset the buttons
         for (let i = 0; i <= width; i++) {
@@ -53,6 +55,10 @@
     function onCheckButtonPressed() {
         if (checking) return;
 
+        checkBoard();
+    }
+
+    export function checkBoard() {
         checking = true;
 
         let success = checkBoard();
@@ -72,13 +78,32 @@
             }
         }
 
+        dirtyBoard = true;
         checking = false;
+
+        return success;
     }
 
     let buttonCounter = 1;
 
     function onButtonClicked(event) {
+        if (dirtyBoard) removeCheckMarks();
+
         shootLaser(event.detail.pos);
+    }
+
+    function onGridSquareClicked(event) {
+        if (dirtyBoard) removeCheckMarks();
+    }
+
+    function removeCheckMarks() {
+        for (let key of Object.keys(gridSquares)) {
+            gridSquares[key].isMarkedAsBallCorrectly = false;
+            gridSquares[key].isMarkedAsBallIncorrectly = false;
+            gridSquares[key].isMissingBall = false;
+        }
+
+        dirtyBoard = false;
     }
 
     function shootLaser(buttonPosition) {
@@ -248,7 +273,7 @@
         }
     }
 
-    function checkBoard() {
+    function checkResults() {
         let expectedResults = {};
         let actualResults = {};
         let actualBallLocations = [];
@@ -396,7 +421,11 @@
         />
 
         {#each Array(width) as _, j (j)}
-            <GridSquare position={[j, i]} bind:data={gridSquares[[j, i]]} />
+            <GridSquare
+                position={[j, i]}
+                bind:data={gridSquares[[j, i]]}
+                on:clicked={onGridSquareClicked}
+            />
         {/each}
 
         <LaserButton
