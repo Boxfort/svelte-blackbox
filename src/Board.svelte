@@ -10,9 +10,15 @@
 
     let gridSquares = {};
     let laserButtons = {};
+    let laserPaths = {};
 
     let checking = false;
     let dirtyBoard = false;
+    let buttonCounter = 1;
+
+    let board;
+    $: boardTop = 0; // board == null ? 0 : board.offsetTop - board.clientHeight;
+    $: boardLeft = 0; //board == null ? 0 : board.offsetLeft - board.clientWidth;
 
     $: OnDataChanged(width, height, balls);
 
@@ -28,10 +34,16 @@
         for (let i = 0; i <= width; i++) {
             laserButtons[[i, 0]] = "";
             laserButtons[[i, height + 1]] = "";
+
+            laserPaths[[i, 0]] = [];
+            laserPaths[[i, height + 1]] = [];
         }
         for (let i = 0; i <= height + 1; i++) {
             laserButtons[[0, i]] = "";
             laserButtons[[width, i]] = "";
+
+            laserPaths[[0, i]] = [];
+            laserPaths[[width, i]] = [];
         }
         buttonCounter = 1;
 
@@ -61,7 +73,7 @@
     export function checkBoard() {
         checking = true;
 
-        let success = checkBoard();
+        let success = checkResults();
         for (let key of Object.keys(gridSquares)) {
             if (gridSquares[key].isMarkedAsBall && gridSquares[key].hasBall) {
                 gridSquares[key].isMarkedAsBallCorrectly = true;
@@ -83,8 +95,6 @@
 
         return success;
     }
-
-    let buttonCounter = 1;
 
     function onButtonClicked(event) {
         if (dirtyBoard) removeCheckMarks();
@@ -131,7 +141,12 @@
             startingPosition[1]--;
         }
 
-        let result = resolveLaser(startingPosition, direction, true);
+        let result = resolveLaser(
+            startingPosition,
+            direction,
+            true,
+            laserPaths[buttonPosition].length == 0 ? buttonPosition : null // Have we already stored a path for this button?
+        );
 
         if (result.result == "Hit") {
             laserButtons[buttonPosition] = "H";
@@ -161,7 +176,12 @@
         }
     }
 
-    function resolveLaser(position, direction, justFired = false) {
+    function resolveLaser(
+        position,
+        direction,
+        justFired = false,
+        buttonPosition = null
+    ) {
         let relativeLeft;
         let relativeRight;
 
@@ -179,10 +199,6 @@
             relativeRight = [0, -1];
         }
 
-        //console.log("Position: " + position);
-        //console.log("Direction: " + direction);
-        //console.log("JustFired: " + justFired);
-
         let frontPos = addPositions(position, direction);
         let leftPos = addPositions(position, relativeLeft);
         let rightPos = addPositions(position, relativeRight);
@@ -194,6 +210,13 @@
             addPositions(position, direction),
             relativeRight
         );
+
+        // Store this step of the path so we can draw it later
+        if (buttonPosition != null) {
+            laserPaths[buttonPosition] = laserPaths[buttonPosition].concat({
+                pos: position,
+            });
+        }
 
         // Special case for just entering the board.
         if (justFired) {
@@ -262,7 +285,12 @@
         }
 
         if (isInBounds(nextPosition)) {
-            return resolveLaser(nextPosition, nextDirection);
+            return resolveLaser(
+                nextPosition,
+                nextDirection,
+                false,
+                buttonPosition
+            );
         } else {
             // We've left the board
             return {
@@ -398,9 +426,43 @@
             position[1] < 0
         );
     }
+
+    function getPointsFromLaserPath(laserPath) {
+        let points = [];
+
+        laserPath.forEach((element) => {
+            let firstGridSquare = gridSquares[[0, 0]];
+            let gridSquareWidth = firstGridSquare.domElement.clientWidth;
+            let gridSquareHeight = firstGridSquare.domElement.clientHeight;
+            let padding = 1; // We need to offset with regards to the padding around each grid square
+            let borderSize = 1; // we also need to offset with regards to the border around each grid square
+
+            points.push(
+                (
+                    element.pos[0] * gridSquareWidth +
+                    gridSquareWidth * 1.5 +
+                    padding * (element.pos[0] + 2) +
+                    borderSize * ((element.pos[0] + 1) * 2)
+                ).toString() +
+                    "," +
+                    (
+                        element.pos[1] * gridSquareHeight +
+                        gridSquareHeight * 1.5 +
+                        padding * (element.pos[1] + 2) +
+                        borderSize * ((element.pos[1] + 1) * 2)
+                    ).toString()
+            );
+        });
+
+        return points.join(",");
+    }
 </script>
 
-<div class="grid-container" style="--width: {width}; --height: {height}">
+<div
+    class="grid-container"
+    style="--width: {width}; --height: {height}"
+    bind:this={board}
+>
     <!-- Top buttons -->
     <div class="grid-item-empty" />
     {#each Array(width) as _, i (i)}
@@ -445,17 +507,42 @@
         />
     {/each}
     <div class="grid-item-empty" />
+    <svg class="laser-svg">
+        {#each Object.values(laserPaths) as laserPath}
+            <polyline
+                class="laser-line"
+                points={getPointsFromLaserPath(laserPath)}
+            />
+        {/each}
+    </svg>
 </div>
 
 <button on:click={onCheckButtonPressed} disabled={checking}>Check</button>
 
 <style>
     .grid-container {
+        position: relative;
         display: grid;
         grid-template-columns: repeat(calc(var(--width) + 2), auto);
         grid-template-rows: repeat(calc(var(--height) + 2), auto);
         width: fit-content;
         margin: auto;
         gap: 1px;
+    }
+
+    .laser-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .laser-line {
+        fill: none;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke: rgba(255, 0, 0, 1);
     }
 </style>

@@ -10,6 +10,7 @@
         isMissingBall: false,
         isMarkedAsBallIncorrectly: false,
         isMarkedAsBallCorrectly: false,
+        domElement: null,
     };
 
     const dispatch = createEventDispatcher();
@@ -32,6 +33,7 @@
     class="grid-square"
     class:marked-clear={data.isMarkedAsClear}
     on:click={handleClick}
+    bind:this={data.domElement}
 >
     {#if data.isMarkedAsBall || data.isMarkedAsBallIncorrectly || data.isMissingBall}
         <div

@@ -10,14 +10,14 @@
 
 <main>
     <h1>Black Box</h1>
+    <Board {...data} />
+
     <p>Width</p>
     <input bind:value={data.width} type="number" />
     <p>Height</p>
     <input bind:value={data.height} type="number" />
     <p>Balls</p>
     <input bind:value={data.balls} type="number" />
-
-    <Board {...data} />
 </main>
 
 <style>
