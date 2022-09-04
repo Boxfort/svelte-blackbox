@@ -535,12 +535,14 @@
     {/each}
     <div class="grid-item-empty" />
     <svg class="laser-svg">
-        {#each Object.values(laserPaths) as laserPath}
-            <polyline
-                class="laser-line"
-                points={getPointsFromLaserPath(laserPath)}
-            />
-        {/each}
+        {#if dirtyBoard}
+            {#each Object.values(laserPaths) as laserPath}
+                <polyline
+                    class="laser-line"
+                    points={getPointsFromLaserPath(laserPath)}
+                />
+            {/each}
+        {/if}
     </svg>
 </div>
 
@@ -572,7 +574,7 @@
         stroke-linecap: round;
         stroke: rgba(255, 0, 0, 1);
         stroke-dasharray: 100;
-        animation: dash 5s infinite;
+        animation: dash 2s infinite;
         animation-timing-function: linear;
     }
 

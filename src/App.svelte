@@ -1,4 +1,5 @@
 <script>
+    import Header from "./Header.svelte";
     import Board from "./Board.svelte";
 
     let data = {
@@ -9,22 +10,23 @@
 </script>
 
 <main>
-    <h1>Black Box</h1>
-    <Board {...data} />
+    <Header />
 
-    <p>Width</p>
-    <input bind:value={data.width} type="number" />
-    <p>Height</p>
-    <input bind:value={data.height} type="number" />
-    <p>Balls</p>
-    <input bind:value={data.balls} type="number" />
+    <div class="content">
+        <Board {...data} />
+
+        <p>Width</p>
+        <input bind:value={data.width} type="number" />
+        <p>Height</p>
+        <input bind:value={data.height} type="number" />
+        <p>Balls</p>
+        <input bind:value={data.balls} type="number" />
+    </div>
 </main>
 
 <style>
     main {
         text-align: center;
-        padding: 1em;
-        max-width: 240px;
         margin: 0 auto;
     }
 
@@ -35,9 +37,7 @@
         font-weight: 100;
     }
 
-    @media (min-width: 640px) {
-        main {
-            max-width: none;
-        }
+    .content {
+        padding: 10px;
     }
 </style>
