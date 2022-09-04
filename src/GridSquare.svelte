@@ -7,6 +7,9 @@
         hasBall: false,
         isMarkedAsBall: false,
         isMarkedAsClear: false,
+        isMissingBall: false,
+        isMarkedAsBallIncorrectly: false,
+        isMarkedAsBallCorrectly: false,
     };
 
     const dispatch = createEventDispatcher();
@@ -21,7 +24,6 @@
         } else {
             data.isMarkedAsClear = true;
         }
-        console.log("PRESSED: " + position.toString());
         dispatch("clicked", { pos: position });
     }
 </script>
@@ -31,8 +33,13 @@
     class:marked-clear={data.isMarkedAsClear}
     on:click={handleClick}
 >
-    {#if data.isMarkedAsBall}
-        <div class="grid-ball" />
+    {#if data.isMarkedAsBall || data.isMarkedAsBallIncorrectly || data.isMissingBall}
+        <div
+            class="grid-ball"
+            class:missing-ball={data.isMissingBall}
+            class:marked-incorrectly={data.isMarkedAsBallIncorrectly}
+            class:marked-correctly={data.isMarkedAsBallCorrectly}
+        />
     {/if}
 </div>
 
@@ -56,6 +63,19 @@
 
     .marked-clear {
         background-color: grey;
+    }
+
+    .missing-ball {
+        background-color: white !important;
+        border: 1px solid black !important;
+    }
+
+    .marked-incorrectly {
+        background-color: red !important;
+    }
+
+    .marked-correctly {
+        background-color: greenyellow !important;
     }
 
     .grid-ball {

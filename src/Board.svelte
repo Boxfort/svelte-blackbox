@@ -11,6 +11,8 @@
     let gridSquares = {};
     let laserButtons = {};
 
+    let checking = false;
+
     $: OnDataChanged(width, height, balls);
 
     async function OnDataChanged(...args) {
@@ -49,8 +51,28 @@
     }
 
     function onCheckButtonPressed() {
-        let win = checkBoard();
-        console.log(win);
+        if (checking) return;
+
+        checking = true;
+
+        let success = checkBoard();
+        for (let key of Object.keys(gridSquares)) {
+            if (gridSquares[key].isMarkedAsBall && gridSquares[key].hasBall) {
+                gridSquares[key].isMarkedAsBallCorrectly = true;
+            } else if (
+                gridSquares[key].isMarkedAsBall &&
+                !gridSquares[key].hasBall
+            ) {
+                gridSquares[key].isMarkedAsBallIncorrectly = true;
+            } else if (
+                !gridSquares[key].isMarkedAsBall &&
+                gridSquares[key].hasBall
+            ) {
+                gridSquares[key].isMissingBall = true;
+            }
+        }
+
+        checking = false;
     }
 
     let buttonCounter = 1;
@@ -396,7 +418,7 @@
     <div class="grid-item-empty" />
 </div>
 
-<button on:click={onCheckButtonPressed}>Check</button>
+<button on:click={onCheckButtonPressed} disabled={checking}>Check</button>
 
 <style>
     .grid-container {
