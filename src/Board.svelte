@@ -48,6 +48,11 @@
         }
     }
 
+    function onCheckButtonPressed() {
+        let win = checkBoard();
+        console.log(win);
+    }
+
     let buttonCounter = 1;
 
     function onButtonClicked(event) {
@@ -127,9 +132,9 @@
             relativeRight = [0, -1];
         }
 
-        console.log("Position: " + position);
-        console.log("Direction: " + direction);
-        console.log("JustFired: " + justFired);
+        //console.log("Position: " + position);
+        //console.log("Direction: " + direction);
+        //console.log("JustFired: " + justFired);
 
         let frontPos = addPositions(position, direction);
         let leftPos = addPositions(position, relativeLeft);
@@ -221,6 +226,111 @@
         }
     }
 
+    function checkBoard() {
+        let expectedResults = {};
+        let actualResults = {};
+        let actualBallLocations = [];
+
+        expectedResults = getBoardResults();
+
+        // Modify the board to be how it's set up
+        for (let key of Object.keys(gridSquares)) {
+            if (gridSquares[key].hasBall) {
+                actualBallLocations.push(key);
+                gridSquares[key].hasBall = false;
+            }
+
+            if (gridSquares[key].isMarkedAsBall) {
+                gridSquares[key].hasBall = true;
+            }
+        }
+
+        actualResults = getBoardResults();
+
+        let success = doResultsMatch(expectedResults, actualResults);
+
+        // Reset the board
+        for (let key of Object.keys(gridSquares)) {
+            gridSquares[key].hasBall = false;
+        }
+
+        // Replace the balls
+        actualBallLocations.forEach((position) => {
+            gridSquares[position].hasBall = true;
+        });
+
+        return success;
+    }
+
+    function doResultsMatch(expectedResults, actualResults) {
+        for (let key of Object.keys(expectedResults)) {
+            if (expectedResults[key].result == actualResults[key].result) {
+                if (expectedResults[key].result == "Exited") {
+                    if (
+                        !arePositionsEqual(
+                            expectedResults[key].pos,
+                            actualResults[key].pos
+                        ) ||
+                        !arePositionsEqual(
+                            expectedResults[key].dir,
+                            actualResults[key].dir
+                        )
+                    ) {
+                        console.log(
+                            "Exit location for " +
+                                key +
+                                " do not match: " +
+                                expectedResults[key].pos +
+                                " != " +
+                                actualResults[key].pos
+                        );
+                        return false;
+                    }
+                }
+            } else {
+                console.log(
+                    "Results for " +
+                        key +
+                        " do not match: " +
+                        expectedResults[key].result +
+                        " != " +
+                        actualResults[key].result
+                );
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function getBoardResults() {
+        let results = {};
+        for (let i = 0; i < width; i++) {
+            // Top Row
+            results[(i, 0)] = resolveLaser([i, 0], [0, 1], true);
+            // Bottom Row
+            results[(i, height - 1)] = resolveLaser(
+                [i, height - 1],
+                [0, -1],
+                true
+            );
+        }
+
+        for (let i = 1; i < height - 1; i++) {
+            // Left Side
+            results[(0, i)] = resolveLaser([0, i], [1, 0], true);
+
+            // Right Side
+            results[(width - 1, i)] = resolveLaser(
+                [width - 1, i],
+                [-1, 0],
+                true
+            );
+        }
+
+        return results;
+    }
+
     function arePositionsEqual(a, b) {
         return a[0] == b[0] && a[1] == b[1];
     }
@@ -286,7 +396,7 @@
     <div class="grid-item-empty" />
 </div>
 
-<button>Check</button>
+<button on:click={onCheckButtonPressed}>Check</button>
 
 <style>
     .grid-container {
