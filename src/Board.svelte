@@ -141,11 +141,22 @@
             startingPosition[1]--;
         }
 
+        let shouldCalculate = false;
+        if (laserPaths[buttonPosition].length == 0) {
+            let startPos = [
+                startingPosition[0] - direction[0],
+                startingPosition[1] - direction[1],
+            ];
+            console.log(startPos);
+            laserPaths[buttonPosition].push({ pos: startPos });
+            shouldCalculate = true;
+        }
+
         let result = resolveLaser(
             startingPosition,
             direction,
             true,
-            laserPaths[buttonPosition].length == 0 ? buttonPosition : null // Have we already stored a path for this button?
+            shouldCalculate ? buttonPosition : null
         );
 
         if (result.result == "Hit") {
@@ -168,9 +179,15 @@
                 targetButtonPos = addPositions(result.pos, [0, 1]);
             }
 
+            if (laserPaths[targetButtonPos].length > 0) {
+                console.log("clear target");
+                laserPaths[targetButtonPos] = [];
+            }
+
             if (laserButtons[buttonPosition] == "") {
                 laserButtons[buttonPosition] = buttonCounter.toString();
                 laserButtons[targetButtonPos] = buttonCounter.toString();
+
                 buttonCounter++;
             }
         }
@@ -243,6 +260,11 @@
             }
         } else {
             // We've left the board
+            if (buttonPosition != null) {
+                laserPaths[buttonPosition] = laserPaths[buttonPosition].concat({
+                    pos: addPositions(position, direction),
+                });
+            }
             return {
                 result: "Exited",
                 pos: position,
@@ -293,6 +315,11 @@
             );
         } else {
             // We've left the board
+            if (buttonPosition != null) {
+                laserPaths[buttonPosition] = laserPaths[buttonPosition].concat({
+                    pos: nextPosition,
+                });
+            }
             return {
                 result: "Exited",
                 pos: position,
@@ -544,5 +571,14 @@
         stroke-width: 3;
         stroke-linecap: round;
         stroke: rgba(255, 0, 0, 1);
+        stroke-dasharray: 100;
+        animation: dash 5s infinite;
+        animation-timing-function: linear;
+    }
+
+    @keyframes dash {
+        to {
+            stroke-dashoffset: -1000;
+        }
     }
 </style>
