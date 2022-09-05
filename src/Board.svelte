@@ -12,13 +12,13 @@
     let laserButtons = {};
     let laserPaths = {};
 
+    let highlightedButton = [];
+
     let checking = false;
     let dirtyBoard = false;
     let buttonCounter = 1;
 
     let board;
-    $: boardTop = 0; // board == null ? 0 : board.offsetTop - board.clientHeight;
-    $: boardLeft = 0; //board == null ? 0 : board.offsetLeft - board.clientWidth;
 
     $: OnDataChanged(width, height, balls);
 
@@ -30,24 +30,29 @@
             gridSquares[key].hasBall = false;
             removeCheckMarks();
         }
+
+        await tick();
+
         // Reset the buttons
-        for (let i = 0; i <= width; i++) {
-            laserButtons[[i, 0]] = "";
-            laserButtons[[i, height + 1]] = "";
+        for (let i = 0; i < width; i++) {
+            laserButtons[[i, 0]].text = "";
+            laserButtons[[i, height + 1]].text = "";
 
             laserPaths[[i, 0]] = [];
             laserPaths[[i, height + 1]] = [];
         }
-        for (let i = 0; i <= height + 1; i++) {
-            laserButtons[[0, i]] = "";
-            laserButtons[[width, i]] = "";
+        for (let i = 1; i <= height + 1; i++) {
+            console.log(laserButtons[[0, 1]]);
+            console.log(Object.keys(laserButtons));
+            console.log(i);
+            console.log(width);
+            laserButtons[[0, i]].text = "";
+            laserButtons[[width, i]].text = "";
 
             laserPaths[[0, i]] = [];
             laserPaths[[width, i]] = [];
         }
         buttonCounter = 1;
-
-        await tick();
 
         // Distribute some balls
         let placedBalls = 0;
@@ -96,10 +101,15 @@
         return success;
     }
 
-    function onButtonClicked(event) {
+    function onLaserButtonDown(event) {
         if (dirtyBoard) removeCheckMarks();
 
         shootLaser(event.detail.pos);
+    }
+
+    function onLaserButtonUp(event) {
+        laserButtons[highlightedButton].highlighted = false;
+        highlightedButton = [];
     }
 
     function onGridSquareClicked(event) {
@@ -160,9 +170,9 @@
         );
 
         if (result.result == "Hit") {
-            laserButtons[buttonPosition] = "H";
+            laserButtons[buttonPosition].text = "H";
         } else if (result.result == "Reflected") {
-            laserButtons[buttonPosition] = "R";
+            laserButtons[buttonPosition].text = "R";
         } else if (result.result == "Exited") {
             let targetButtonPos = [0, 0];
             if (arePositionsEqual(result.dir, [0, 1])) {
@@ -184,12 +194,15 @@
                 laserPaths[targetButtonPos] = [];
             }
 
-            if (laserButtons[buttonPosition] == "") {
-                laserButtons[buttonPosition] = buttonCounter.toString();
-                laserButtons[targetButtonPos] = buttonCounter.toString();
+            if (laserButtons[buttonPosition].text == "") {
+                laserButtons[buttonPosition].text = buttonCounter.toString();
+                laserButtons[targetButtonPos].text = buttonCounter.toString();
 
                 buttonCounter++;
             }
+
+            highlightedButton = targetButtonPos;
+            laserButtons[targetButtonPos].highlighted = true;
         }
     }
 
@@ -495,8 +508,9 @@
     {#each Array(width) as _, i (i)}
         <LaserButton
             position={[i, 0]}
-            bind:text={laserButtons[[i, 0]]}
-            on:clicked={onButtonClicked}
+            bind:data={laserButtons[[i, 0]]}
+            on:click-down={onLaserButtonDown}
+            on:click-up={onLaserButtonUp}
         />
     {/each}
     <div class="grid-item-empty" />
@@ -505,8 +519,9 @@
     {#each Array(height) as _, i (i)}
         <LaserButton
             position={[0, i + 1]}
-            bind:text={laserButtons[[0, i + 1]]}
-            on:clicked={onButtonClicked}
+            bind:data={laserButtons[[0, i + 1]]}
+            on:click-down={onLaserButtonDown}
+            on:click-up={onLaserButtonUp}
         />
 
         {#each Array(width) as _, j (j)}
@@ -519,8 +534,9 @@
 
         <LaserButton
             position={[width, i + 1]}
-            bind:text={laserButtons[[width, i + 1]]}
-            on:clicked={onButtonClicked}
+            bind:data={laserButtons[[width, i + 1]]}
+            on:click-down={onLaserButtonDown}
+            on:click-up={onLaserButtonUp}
         />
     {/each}
 
@@ -529,8 +545,9 @@
     {#each Array(width) as _, i (i)}
         <LaserButton
             position={[i, height + 1]}
-            bind:text={laserButtons[[i, height + 1]]}
-            on:clicked={onButtonClicked}
+            bind:data={laserButtons[[i, height + 1]]}
+            on:click-down={onLaserButtonDown}
+            on:click-up={onLaserButtonUp}
         />
     {/each}
     <div class="grid-item-empty" />

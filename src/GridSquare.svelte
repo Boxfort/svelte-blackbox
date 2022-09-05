@@ -53,7 +53,7 @@
 
         width: 3em;
         height: 3em;
-        border: 1px solid black;
+        border: 1px solid darkgrey;
 
         cursor: pointer;
         user-select: none;
