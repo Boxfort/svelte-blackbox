@@ -4,17 +4,24 @@
     export let position;
 
     export let data = {
-        text: "pain",
+        text: "",
         highlighted: false,
+        otherHighlight: null,
     };
 
     const dispatch = createEventDispatcher();
 
-    function onClickDown() {
+    function onClickDown(event) {
+        data.highlighted = true;
         dispatch("click-down", { pos: position });
     }
 
     function onClickUp() {
+        data.highlighted = false;
+        if (data.otherHighlight != null) {
+            data.otherHighlight.highlighted = false;
+            data.otherHighlight = null;
+        }
         dispatch("click-up", { pos: position });
     }
 </script>
@@ -23,9 +30,13 @@
     class="laser-button"
     on:mousedown={onClickDown}
     on:mouseup={onClickUp}
+    on:mouseleave={onClickUp}
+    bind:this={data.domElement}
     class:active={data.highlighted}
 >
-    {data.text}
+    {#if data != null}
+        {data.text}
+    {/if}
 </div>
 
 <style>
@@ -48,7 +59,7 @@
         background-color: white;
     }
 
-    .laser-button:active {
+    .active {
         background-color: white;
         box-shadow: 0px 0px 5px 3px #f00;
         z-index: 1;

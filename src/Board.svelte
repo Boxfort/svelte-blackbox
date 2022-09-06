@@ -1,5 +1,5 @@
 <script>
-    import { tick } from "svelte";
+    import { afterUpdate, tick } from "svelte";
 
     import GridSquare from "./GridSquare.svelte";
     import LaserButton from "./LaserButton.svelte";
@@ -12,8 +12,6 @@
     let laserButtons = {};
     let laserPaths = {};
 
-    let highlightedButton = [];
-
     let checking = false;
     let dirtyBoard = false;
     let buttonCounter = 1;
@@ -23,6 +21,8 @@
     $: OnDataChanged(width, height, balls);
 
     async function OnDataChanged(...args) {
+        await tick();
+
         // Reset the board
         for (let key of Object.keys(gridSquares)) {
             gridSquares[key].isMarkedAsBall = false;
@@ -31,21 +31,24 @@
             removeCheckMarks();
         }
 
-        await tick();
-
-        // Reset the buttons
+        // Reset Top and bottom buttons
         for (let i = 0; i < width; i++) {
+            if (laserButtons[[i, 0]] == null) laserButtons[[i, 0]] = {};
+
+            if (laserButtons[[i, height + 1]] == null)
+                laserButtons[[i, height + 1]] = {};
+
             laserButtons[[i, 0]].text = "";
             laserButtons[[i, height + 1]].text = "";
 
             laserPaths[[i, 0]] = [];
             laserPaths[[i, height + 1]] = [];
         }
-        for (let i = 1; i <= height + 1; i++) {
-            console.log(laserButtons[[0, 1]]);
-            console.log(Object.keys(laserButtons));
-            console.log(i);
-            console.log(width);
+        // Reset Middle Buttons
+        for (let i = 1; i <= height; i++) {
+            if (laserButtons[[0, i]] == null) laserButtons[[0, i]] = {};
+            if (laserButtons[[width, i]] == null) laserButtons[[width, i]] = {};
+
             laserButtons[[0, i]].text = "";
             laserButtons[[width, i]].text = "";
 
@@ -105,11 +108,6 @@
         if (dirtyBoard) removeCheckMarks();
 
         shootLaser(event.detail.pos);
-    }
-
-    function onLaserButtonUp(event) {
-        laserButtons[highlightedButton].highlighted = false;
-        highlightedButton = [];
     }
 
     function onGridSquareClicked(event) {
@@ -201,8 +199,11 @@
                 buttonCounter++;
             }
 
-            highlightedButton = targetButtonPos;
-            laserButtons[targetButtonPos].highlighted = true;
+            if (targetButtonPos != null) {
+                laserButtons[targetButtonPos].highlighted = true;
+                laserButtons[buttonPosition].otherHighlight =
+                    laserButtons[targetButtonPos];
+            }
         }
     }
 
@@ -510,7 +511,6 @@
             position={[i, 0]}
             bind:data={laserButtons[[i, 0]]}
             on:click-down={onLaserButtonDown}
-            on:click-up={onLaserButtonUp}
         />
     {/each}
     <div class="grid-item-empty" />
@@ -521,7 +521,6 @@
             position={[0, i + 1]}
             bind:data={laserButtons[[0, i + 1]]}
             on:click-down={onLaserButtonDown}
-            on:click-up={onLaserButtonUp}
         />
 
         {#each Array(width) as _, j (j)}
@@ -536,7 +535,6 @@
             position={[width, i + 1]}
             bind:data={laserButtons[[width, i + 1]]}
             on:click-down={onLaserButtonDown}
-            on:click-up={onLaserButtonUp}
         />
     {/each}
 
@@ -547,7 +545,6 @@
             position={[i, height + 1]}
             bind:data={laserButtons[[i, height + 1]]}
             on:click-down={onLaserButtonDown}
-            on:click-up={onLaserButtonUp}
         />
     {/each}
     <div class="grid-item-empty" />
