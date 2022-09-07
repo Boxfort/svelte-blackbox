@@ -32,7 +32,7 @@
     on:mouseup={onClickUp}
     on:mouseleave={onClickUp}
     bind:this={data.domElement}
-    class:active={data.highlighted}
+    class:active={data != null ? data.highlighted : false}
 >
     {#if data != null}
         {data.text}

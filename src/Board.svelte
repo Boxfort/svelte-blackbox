@@ -57,6 +57,8 @@
         }
         buttonCounter = 1;
 
+        await tick();
+
         // Distribute some balls
         let placedBalls = 0;
         while (placedBalls < balls) {
